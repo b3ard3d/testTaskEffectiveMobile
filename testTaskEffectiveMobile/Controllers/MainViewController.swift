@@ -34,6 +34,11 @@ class MainViewController: UIViewController {
         updateTableView()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateTableView()
+    }
+    
     func setupView() {
         view.backgroundColor = .systemBackground
         view.addSubview(tableViewTodos)
@@ -41,8 +46,8 @@ class MainViewController: UIViewController {
     
     private func setupNavigationBar() {
         self.navigationController?.navigationBar.prefersLargeTitles = false
-        self.navigationItem.title = "Задачи"
-        navigationItem.backButtonTitle = ""
+        self.navigationItem.title = "Todos"
+        navigationItem.backButtonTitle = "Back"
         
         let rightBarButton = UIBarButtonItem(image: UIImage(systemName: "plus"), style: .plain, target: self, action: #selector(addTodosButtonClicked))
         
@@ -67,17 +72,15 @@ class MainViewController: UIViewController {
     }
     
     @objc func addTodosButtonClicked() {
-        let alert = UIAlertController(title: "Хотите добавить новую задачу?", message: nil, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Да", style: .default, handler: { action in
+        let alert = UIAlertController(title: "Add new todos?", message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { action in
             let addTodosViewController = AddTodosViewController()
-            //addTodosViewController.selectedUUID = self.selectedUUID
-            //self.present(addTodosViewController, animated: true)
+            addTodosViewController.lastId = self.todos.last?.id
             self.navigationController?.pushViewController(addTodosViewController, animated: true)
         }))
-        alert.addAction(UIAlertAction(title: "Нет", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "No", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
-
 }
 
 extension MainViewController: UITableViewDataSource, UITableViewDelegate {
@@ -89,16 +92,14 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         
         let todos = todos[indexPath.row]
-        //cell.textLabel?.text = (String(todos.id)) + ": " + (todos.todo)
         cell.textLabel?.text = (String(indexPath.row + 1)) + ": " + (todos.todo)
-        
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         if indexPath.row != 0 {
-            let deleteAction = UIContextualAction(style: .destructive, title: "Удалить") {
+            let deleteAction = UIContextualAction(style: .destructive, title: "Delete") {
                 (contextualAction, view, boolValue) in
                 self.todos.remove(at: indexPath.row - 1)
                 tableView.deleteRows(at: [indexPath], with: .automatic)
@@ -110,42 +111,15 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate {
         else { return nil }
     }
     
- /*   func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 50
-    }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let headerView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: tableView.frame.width, height: 50))
-        headerView.backgroundColor = .systemBackground
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let viewController = EditingTodosViewController()
+        viewController.selectedId = todos[indexPath.row].id
+        viewController.selectedUserId = todos[indexPath.row].userId
+        viewController.selectedTodo = todos[indexPath.row].todo
+        viewController.selectedCompleted = todos[indexPath.row].completed
+        viewController.selectedCreationDate = todos[indexPath.row].creationDate
         
-            let label = UILabel()
-            label.frame = CGRect.init(x: 20, y: 5, width: headerView.frame.width - 10, height: headerView.frame.height - 10)
-            label.text = "Контактная информация:"
-            
-            let addContactInfoButton = UIButton.init(frame: CGRect(x: (headerView.frame.width / 2) - 20, y: 5, width: headerView.frame.width - 10, height: headerView.frame.height - 10))
-            addContactInfoButton.setImage(UIImage(systemName: "plus"), for: .normal)
-            addContactInfoButton.addTarget(self, action: #selector(addTodosButtonClicked), for: .touchUpInside)
-                    
-            headerView.addSubview(label)
-            headerView.addSubview(addContactInfoButton)
-                    
-        return headerView
-    }   */
-    
-/*    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if tableView == tableViewContactPerson {
-            let viewController = DetailsContactPersonCounterpartiesViewController()
-            viewController.selectedFullName = contactPersonCounterparties[indexPath.row].name
-            viewController.selectedUUID = contactPersonCounterparties[indexPath.row].uuid
-            
-            navigationController?.pushViewController(viewController, animated: true)
-        } else if tableView == tableViewContact {
-            let viewController = ContactInfoViewController()
-            viewController.selectedKind = contactDetailsCounterparties[indexPath.row].kind
-            viewController.selectedPresentation = contactDetailsCounterparties[indexPath.row].presentation
-            
-            navigationController?.pushViewController(viewController, animated: true)
-        }
-    }   */
+        navigationController?.pushViewController(viewController, animated: true)
+    }
 }
 
